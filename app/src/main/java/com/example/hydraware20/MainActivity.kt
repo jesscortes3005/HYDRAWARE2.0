@@ -8,9 +8,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.example.hydraware20.ui.theme.Hydraware20Theme
 
 class MainActivity : ComponentActivity() {
@@ -19,11 +20,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             Hydraware20Theme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                Scaffold(modifier = Modifier.fillMaxSize()) {innerPadding ->
+                    AppNavigation()
                 }
             }
         }
@@ -31,17 +29,51 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
+fun AppNavigation() {
+    var currentScreen by remember { mutableStateOf("login") }
+    var currentUser by remember { mutableStateOf("") }
+    
+    when (currentScreen) {
+        "login" -> {
+            LoginScreen(
+                onLoginClick = { usuario, password ->
+                    // Simular login exitoso
+                    currentUser = usuario
+                    currentScreen = "home"
+                    println("Login successful: $usuario")
+                },
+                onRegistrarseClick = {
+                    currentScreen = "register"
+                }
+            )
+        }
+        "register" -> {
+            RegisterScreen(
+                onRegisterClick = { usuario, password, confirmPassword ->
+                    // Simular registro exitoso
+                    currentUser = usuario
+                    currentScreen = "home"
+                    println("Register successful: $usuario")
+                },
+                onVolverLoginClick = {
+                    currentScreen = "login"
+                }
+            )
+        }
+        "home" -> {
+            HomeScreen(
+                userName = currentUser,
+                onLogoutClick = {
+                    currentUser = ""
+                    currentScreen = "login"
+                }
+            )
+        }
+    }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
-    Hydraware20Theme {
-        Greeting("Android")
-    }
+fun LoginPreview() {
+    LoginScreen(onLoginClick = { _, _ -> }, onRegistrarseClick = {})
 }
