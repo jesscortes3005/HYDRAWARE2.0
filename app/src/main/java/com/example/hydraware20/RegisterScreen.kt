@@ -22,11 +22,16 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun RegisterScreen(
     onRegisterClick: (usuario: String, password: String, confirmPassword: String) -> Unit,
-    onVolverLoginClick: () -> Unit
+    onVolverLoginClick: () -> Unit,
+    showRegisterError: Boolean = false,
+    onDismissRegisterError: () -> Unit = {},
+    showRegisterSuccess: Boolean = false,
+    onDismissRegisterSuccess: () -> Unit = {}
 ) {
     var usuario by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -182,6 +187,72 @@ fun RegisterScreen(
             
             Spacer(modifier = Modifier.weight(1f))
         }
+        
+        // Error AlertDialog - User already exists
+        if (showRegisterError) {
+            AlertDialog(
+                onDismissRequest = onDismissRegisterError,
+                title = {
+                    Text(
+                        text = "Error de Registro",
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF333333)
+                    )
+                },
+                text = {
+                    Text(
+                        text = "Este usuario ya existe. Por favor elija otro nombre de usuario.",
+                        color = Color(0xFF333333)
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = onDismissRegisterError,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF007AFF)
+                        )
+                    ) {
+                        Text(
+                            text = "OK",
+                            color = Color.White
+                        )
+                    }
+                }
+            )
+        }
+        
+        // Success AlertDialog - Registration successful
+        if (showRegisterSuccess) {
+            AlertDialog(
+                onDismissRequest = { },
+                title = {
+                    Text(
+                        text = "Registro Exitoso",
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF007AFF)
+                    )
+                },
+                text = {
+                    Text(
+                        text = "¡Usuario registrado exitosamente! Redirigiendo a la pantalla principal...",
+                        color = Color(0xFF333333)
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = onDismissRegisterSuccess,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF007AFF)
+                        )
+                    ) {
+                        Text(
+                            text = "OK",
+                            color = Color.White
+                        )
+                    }
+                }
+            )
+        }
     }
 }
 
@@ -239,5 +310,18 @@ fun CustomTextField(
         ),
         shape = RoundedCornerShape(8.dp),
         singleLine = true
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun RegisterScreenPreview() {
+    RegisterScreen(
+        onRegisterClick = { _, _, _ -> },
+        onVolverLoginClick = { },
+        showRegisterError = false,
+        onDismissRegisterError = { },
+        showRegisterSuccess = false,
+        onDismissRegisterSuccess = { }
     )
 }

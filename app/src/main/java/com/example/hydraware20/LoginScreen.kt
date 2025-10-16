@@ -22,19 +22,23 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.GlobalScope
+import androidx.compose.ui.tooling.preview.Preview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 
 @Composable
 fun LoginScreen(
     onLoginClick: (usuario: String, password: String) -> Unit,
-    onRegistrarseClick: () -> Unit
+    onRegistrarseClick: () -> Unit,
+    showLoginError: Boolean = false,
+    onDismissLoginError: () -> Unit = {}
 ) {
     var usuario by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
     var isButtonPressed by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
     
     // Validación de campos
     val isFormValid = usuario.isNotBlank() && password.isNotBlank()
@@ -132,7 +136,7 @@ fun LoginScreen(
                         isButtonPressed = true
                         onLoginClick(usuario.trim(), password.trim())
                         // Reset button state after a short delay
-                        GlobalScope.launch {
+                        coroutineScope.launch {
                             delay(200)
                             isButtonPressed = false
                         }
@@ -164,6 +168,39 @@ fun LoginScreen(
             
             // Disclaimer text
 
+        }
+        
+        // Error AlertDialog
+        if (showLoginError) {
+            AlertDialog(
+                onDismissRequest = onDismissLoginError,
+                title = {
+                    Text(
+                        text = "Error de Inicio de Sesión",
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF333333)
+                    )
+                },
+                text = {
+                    Text(
+                        text = "Usuario no registrado. Por favor regístrese primero.",
+                        color = Color(0xFF333333)
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = onDismissLoginError,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF007AFF)
+                        )
+                    ) {
+                        Text(
+                            text = "OK",
+                            color = Color.White
+                        )
+                    }
+                }
+            )
         }
     }
 }
@@ -223,5 +260,16 @@ fun CustomTextField(
         ),
         shape = RoundedCornerShape(8.dp),
         singleLine = true
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LoginScreenPreview() {
+    LoginScreen(
+        onLoginClick = { _, _ -> },
+        onRegistrarseClick = { },
+        showLoginError = false,
+        onDismissLoginError = { }
     )
 }
