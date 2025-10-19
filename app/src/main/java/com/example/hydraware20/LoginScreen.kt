@@ -1,8 +1,8 @@
 package com.example.hydraware20
 
+// Imports necesarios (algunos son nuevos)
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -25,24 +25,39 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.rememberCoroutineScope
+import com.example.hydraware20.viewModel.AuthViewModel
 
 @Composable
 fun LoginScreen(
-    onLoginClick: (usuario: String, password: String) -> Unit,
-    onRegistrarseClick: () -> Unit,
-    showLoginError: Boolean = false,
-    onDismissLoginError: () -> Unit = {}
+    viewModel: AuthViewModel = viewModel(),
+    onLoginSuccess: () -> Unit,
+    onNavigateToRegister: () -> Unit
 ) {
-    var usuario by remember { mutableStateOf("") }
+    // --- Tus estados de UI (se mantienen igual) ---
+    var usuario by remember { mutableStateOf("") } // Esto será el email
     var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
     var isButtonPressed by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
-    
+
+    // --- Leemos el estado DESDE el ViewModel ---
+    val isLoading = viewModel.isLoading
+    val authError = viewModel.authError
+
+    // 3. Reaccionamos al éxito del login para navegar
+    LaunchedEffect(key1 = viewModel.authSuccess) {
+        if (viewModel.authSuccess) {
+            onLoginSuccess() // ¡Navega a la pantalla principal!
+            viewModel.resetAuthSuccess() // Resetea el estado
+        }
+    }
+
     // Validación de campos
     val isFormValid = usuario.isNotBlank() && password.isNotBlank()
 
+    // --- Tu diseño (se mantiene 99% igual) ---
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -56,8 +71,7 @@ fun LoginScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             Spacer(modifier = Modifier.height(80.dp))
-            
-            // App title
+
             Text(
                 text = "Hydraware",
                 fontSize = 32.sp,
@@ -66,10 +80,9 @@ fun LoginScreen(
                 textAlign = TextAlign.Start,
                 modifier = Modifier.fillMaxWidth()
             )
-            
+
             Spacer(modifier = Modifier.height(40.dp))
-            
-            // Login section title
+
             Text(
                 text = "Iniciar Sesión",
                 fontSize = 18.sp,
@@ -78,17 +91,17 @@ fun LoginScreen(
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
-            
+
             Spacer(modifier = Modifier.height(32.dp))
-            
-            // Usuario field
+
+            // Usuario (Email) field
             CustomTextField(
                 value = usuario,
                 onValueChange = { usuario = it },
-                placeholder = "Usuario",
+                placeholder = "Email", // Cambiado a Email, ya que Firebase lo requiere
                 leadingIcon = Icons.Default.Person
             )
-            
+
             // Password field
             CustomTextField(
                 value = password,
@@ -99,9 +112,9 @@ fun LoginScreen(
                 showPassword = showPassword,
                 onPasswordVisibilityToggle = { showPassword = !showPassword }
             )
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             // Registration prompt
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -115,7 +128,8 @@ fun LoginScreen(
                     textAlign = TextAlign.Center
                 )
                 TextButton(
-                    onClick = onRegistrarseClick,
+                    // 4. CAMBIO: Llama al parámetro de navegación
+                    onClick = onNavigateToRegister,
                     contentPadding = PaddingValues(0.dp)
                 ) {
                     Text(
@@ -128,21 +142,23 @@ fun LoginScreen(
 
 
             Spacer(modifier = Modifier.height(24.dp))
-            
+
             // Login button
             Button(
-                onClick = { 
+                onClick = {
                     if (isFormValid) {
                         isButtonPressed = true
-                        onLoginClick(usuario.trim(), password.trim())
-                        // Reset button state after a short delay
+                        // 5. CAMBIO: Llama al ViewModel en lugar del lambda
+                        viewModel.iniciarSesion(usuario.trim(), password.trim())
+
                         coroutineScope.launch {
                             delay(200)
                             isButtonPressed = false
                         }
                     }
                 },
-                enabled = isFormValid,
+                // 6. CAMBIO: Deshabilitado si es válido O si está cargando
+                enabled = isFormValid && !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
@@ -156,24 +172,30 @@ fun LoginScreen(
                     disabledContainerColor = Color(0xFFCCCCCC)
                 )
             ) {
-                Text(
-                    text = "COMPLETAR",
-                    color = if (isFormValid) Color.White else Color(0xFF666666),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                // 7. CAMBIO: Muestra un indicador de carga si es necesario
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "COMPLETAR",
+                        color = if (isFormValid) Color.White else Color(0xFF666666),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
-            
-            Spacer(modifier = Modifier.weight(1f))
-            
-            // Disclaimer text
 
+            Spacer(modifier = Modifier.weight(1f))
         }
-        
-        // Error AlertDialog
-        if (showLoginError) {
+
+        // 8. CAMBIO: El AlertDialog ahora es controlado por el ViewModel
+        if (authError != null) {
             AlertDialog(
-                onDismissRequest = onDismissLoginError,
+                onDismissRequest = { viewModel.dismissError() }, // Llama al ViewModel para cerrar
                 title = {
                     Text(
                         text = "Error de Inicio de Sesión",
@@ -183,13 +205,14 @@ fun LoginScreen(
                 },
                 text = {
                     Text(
-                        text = "Usuario no registrado. Por favor regístrese primero.",
+                        // Muestra el error específico del ViewModel
+                        text = authError,
                         color = Color(0xFF333333)
                     )
                 },
                 confirmButton = {
                     Button(
-                        onClick = onDismissLoginError,
+                        onClick = { viewModel.dismissError() }, // Llama al ViewModel para cerrar
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF007AFF)
                         )
@@ -205,6 +228,7 @@ fun LoginScreen(
     }
 }
 
+// --- Tu Composable (sin cambios) ---
 @Composable
 fun CustomTextField(
     value: String,
@@ -246,7 +270,7 @@ fun CustomTextField(
             }
         } else null,
         keyboardOptions = KeyboardOptions(
-            keyboardType = if (isPassword) KeyboardType.Password else KeyboardType.Text
+            keyboardType = if (isPassword) KeyboardType.Password else KeyboardType.Email // Cambiado a Email
         ),
         visualTransformation = if (isPassword && !showPassword) PasswordVisualTransformation() else VisualTransformation.None,
         colors = OutlinedTextFieldDefaults.colors(
@@ -263,13 +287,14 @@ fun CustomTextField(
     )
 }
 
+// --- Tu Preview (modificada para la nueva firma) ---
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
+    // La preview no puede crear un ViewModel real,
+    // pero podemos ver el diseño estático.
     LoginScreen(
-        onLoginClick = { _, _ -> },
-        onRegistrarseClick = { },
-        showLoginError = false,
-        onDismissLoginError = { }
+        onLoginSuccess = {},
+        onNavigateToRegister = {}
     )
 }

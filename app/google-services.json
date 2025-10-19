@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "712985651609",
+    "project_id": "hydraware---database",
+    "storage_bucket": "hydraware---database.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:712985651609:android:7ac8ec2e4590ace12f0b08",
+        "android_client_info": {
+          "package_name": "com.example.hydraware20"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCYTcKQJE2oXqXXNyWZQfLo3LYX3Z9-5T8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,11 +19,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.hydraware20.viewModel.AuthViewModel
 
 @Composable
 fun HomeScreen(
     userName: String,
-    onLogoutClick: () -> Unit
+    onLogoutClick: () -> Unit,
+    viewModel: AuthViewModel
 ) {
     Box(
         modifier = Modifier
@@ -37,6 +40,32 @@ fun HomeScreen(
         ) {
             // Status bar space
             Spacer(modifier = Modifier.height(40.dp))
+            
+            // Logout button - positioned at top right
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                IconButton(
+                    onClick = {
+                        viewModel.cerrarSesion()
+                        onLogoutClick()
+                    },
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(
+                            color = Color(0xFFF5F5F5),
+                            shape = RoundedCornerShape(24.dp)
+                        )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Logout,
+                        contentDescription = "Cerrar Sesión",
+                        tint = Color(0xFF666666),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
             
             // App title
             Text(
@@ -187,8 +216,10 @@ fun NavigationItem(
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
+    // Para el preview, creamos un ViewModel mock
     HomeScreen(
         userName = "Usuario de Prueba",
-        onLogoutClick = { }
+        onLogoutClick = { },
+        viewModel = AuthViewModel()
     )
 }

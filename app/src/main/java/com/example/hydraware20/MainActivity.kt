@@ -26,6 +26,8 @@ import com.example.hydraware20.ui.theme.Hydraware20Theme
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.delay
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.hydraware20.viewModel.AuthViewModel
 
 // Data class no cambia
 data class User(
@@ -102,73 +104,38 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation() {
     var currentScreen by remember { mutableStateOf("login") }
     var currentUser by remember { mutableStateOf("") }
-    var showLoginError by remember { mutableStateOf(false) }
-    var showRegisterError by remember { mutableStateOf(false) }
-    var showRegisterSuccess by remember { mutableStateOf(false) }
-    var registeredUserName by remember { mutableStateOf("") }
-
-    // --- PUNTO CORREGIDO ---
-    // Obtenemos la instancia ÚNICA del repositorio desde nuestra clase Application.
-    // Esto es más seguro y eficiente que crearla directamente aquí.
-    val context = LocalContext.current
-    val userRepository = (context.applicationContext as MyApplication).userRepository
+    
+    // ViewModel compartido para toda la navegación
+    val authViewModel: AuthViewModel = viewModel()
 
     // Verificar si hay un usuario logueado al iniciar la app
     LaunchedEffect(Unit) {
-        val savedUser = userRepository.getCurrentUser()
-        if (savedUser != null) {
-            currentUser = savedUser
-            currentScreen = "home"
-        }
-    }
-
-    // Manejar navegación después del registro exitoso
-    LaunchedEffect(showRegisterSuccess) {
-        if (showRegisterSuccess) {
-            delay(1500)
-            currentScreen = "login"
-        }
+        // Aquí podrías verificar si hay un usuario autenticado en Firebase
+        // Por ahora, empezamos en la pantalla de login
+        currentScreen = "login"
     }
 
     when (currentScreen) {
         "login" -> {
             LoginScreen(
-                onLoginClick = { usuario, password ->
-                    if (userRepository.validateUser(usuario, password)) {
-                        currentUser = usuario
-                        userRepository.saveCurrentUser(usuario) // Guardar sesión
-                        currentScreen = "home"
-                        println("Login successful: $usuario")
-                    } else {
-                        showLoginError = true
-                    }
+                viewModel = authViewModel,
+                onLoginSuccess = {
+                    currentScreen = "home"
                 },
-                onRegistrarseClick = {
+                onNavigateToRegister = {
                     currentScreen = "register"
-                },
-                showLoginError = showLoginError,
-                onDismissLoginError = { showLoginError = false }
+                }
             )
         }
         "register" -> {
             RegisterScreen(
-                onRegisterClick = { usuario, password, confirmPassword ->
-                    // Aquí podrías añadir validación: if (password != confirmPassword) { ... }
-                    val newUser = User(usuario, password)
-                    if (userRepository.saveUser(newUser)) {
-                        registeredUserName = usuario
-                        showRegisterSuccess = true
-                    } else {
-                        showRegisterError = true
-                    }
+                onRegisterSuccess = {
+                    currentScreen = "home"
                 },
-                onVolverLoginClick = {
+                onNavigateToLogin = {
                     currentScreen = "login"
                 },
-                showRegisterError = showRegisterError,
-                onDismissRegisterError = { showRegisterError = false },
-                showRegisterSuccess = showRegisterSuccess,
-                onDismissRegisterSuccess = { showRegisterSuccess = false }
+                viewModel = authViewModel
             )
         }
         "home" -> {
@@ -176,9 +143,9 @@ fun AppNavigation() {
                 userName = currentUser,
                 onLogoutClick = {
                     currentUser = ""
-                    userRepository.clearCurrentUser() // Limpiar sesión
                     currentScreen = "login"
-                }
+                },
+                viewModel = authViewModel
             )
         }
     }

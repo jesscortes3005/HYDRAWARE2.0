@@ -23,27 +23,49 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.hydraware20.viewModel.AuthViewModel
 
 @Composable
 fun RegisterScreen(
-    onRegisterClick: (usuario: String, password: String, confirmPassword: String) -> Unit,
-    onVolverLoginClick: () -> Unit,
-    showRegisterError: Boolean = false,
-    onDismissRegisterError: () -> Unit = {},
-    showRegisterSuccess: Boolean = false,
-    onDismissRegisterSuccess: () -> Unit = {}
+    // Parámetros de navegación
+    onRegisterSuccess: () -> Unit,
+    onNavigateToLogin: () -> Unit,
+    // ViewModel para Firebase Auth
+    viewModel: AuthViewModel = viewModel()
 ) {
-    var usuario by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var acceptTerms by remember { mutableStateOf(false) }
     var showPassword by remember { mutableStateOf(false) }
     var showConfirmPassword by remember { mutableStateOf(false) }
+    var isButtonPressed by remember { mutableStateOf(false) }
+    
+    // Estados del ViewModel
+    val isLoading = viewModel.isLoading
+    val authError = viewModel.authError
     
     // Validación de campos
-    val isFormValid = usuario.isNotBlank() && 
+    val isFormValid = email.isNotBlank() && 
                      password.isNotBlank() && confirmPassword.isNotBlank() && 
                      acceptTerms && password == confirmPassword
+    
+    // Reaccionamos al éxito del registro para navegar
+    LaunchedEffect(key1 = viewModel.authSuccess) {
+        if (viewModel.authSuccess) {
+            onRegisterSuccess() // Navega a la pantalla principal
+            viewModel.resetAuthSuccess() // Resetea el estado
+        }
+    }
+    
+    // Resetear el estado del botón después de un delay
+    LaunchedEffect(key1 = isButtonPressed) {
+        if (isButtonPressed) {
+            kotlinx.coroutines.delay(200)
+            isButtonPressed = false
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -83,12 +105,12 @@ fun RegisterScreen(
             
             Spacer(modifier = Modifier.height(24.dp))
             
-            // Usuario field
+            // Email field
             CustomTextField(
-                value = usuario,
-                onValueChange = { usuario = it },
-                placeholder = "Usuario",
-                leadingIcon = Icons.Default.Person
+                value = email,
+                onValueChange = { email = it },
+                placeholder = "Email",
+                leadingIcon = Icons.Default.Email
             )
             
             // Password field
@@ -140,25 +162,39 @@ fun RegisterScreen(
             Button(
                 onClick = { 
                     if (isFormValid) {
-                        onRegisterClick(usuario.trim(), password.trim(), confirmPassword.trim())
+                        isButtonPressed = true
+                        // Llamar al ViewModel para registrar con Firebase
+                        viewModel.registrarUsuario(email.trim(), password.trim())
                     }
                 },
-                enabled = isFormValid,
+                enabled = isFormValid && !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isFormValid) Color(0xFF007AFF) else Color(0xFFCCCCCC),
+                    containerColor = when {
+                        isButtonPressed && isFormValid -> Color(0xFF0056CC) // Darker blue when pressed
+                        isFormValid -> Color(0xFF007AFF) // Normal blue
+                        else -> Color(0xFFCCCCCC) // Disabled gray
+                    },
                     disabledContainerColor = Color(0xFFCCCCCC)
                 )
             ) {
-                Text(
-                    text = "REGISTRARSE",
-                    color = if (isFormValid) Color.White else Color(0xFF666666),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "REGISTRARSE",
+                        color = if (isFormValid) Color.White else Color(0xFF666666),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
             
             Spacer(modifier = Modifier.height(16.dp))
@@ -174,7 +210,7 @@ fun RegisterScreen(
                     color = Color(0xFF333333)
                 )
                 TextButton(
-                    onClick = onVolverLoginClick,
+                    onClick = onNavigateToLogin,
                     contentPadding = PaddingValues(0.dp)
                 ) {
                     Text(
@@ -188,10 +224,10 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.weight(1f))
         }
         
-        // Error AlertDialog - User already exists
-        if (showRegisterError) {
+        // Error AlertDialog - Firebase registration error
+        if (authError != null) {
             AlertDialog(
-                onDismissRequest = onDismissRegisterError,
+                onDismissRequest = { viewModel.dismissError() },
                 title = {
                     Text(
                         text = "Error de Registro",
@@ -201,46 +237,13 @@ fun RegisterScreen(
                 },
                 text = {
                     Text(
-                        text = "Este usuario ya existe. Por favor elija otro nombre de usuario.",
+                        text = authError,
                         color = Color(0xFF333333)
                     )
                 },
                 confirmButton = {
                     Button(
-                        onClick = onDismissRegisterError,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF007AFF)
-                        )
-                    ) {
-                        Text(
-                            text = "OK",
-                            color = Color.White
-                        )
-                    }
-                }
-            )
-        }
-        
-        // Success AlertDialog - Registration successful
-        if (showRegisterSuccess) {
-            AlertDialog(
-                onDismissRequest = { },
-                title = {
-                    Text(
-                        text = "Registro Exitoso",
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF007AFF)
-                    )
-                },
-                text = {
-                    Text(
-                        text = "¡Usuario registrado exitosamente! Redirigiendo a la pantalla principal...",
-                        color = Color(0xFF333333)
-                    )
-                },
-                confirmButton = {
-                    Button(
-                        onClick = onDismissRegisterSuccess,
+                        onClick = { viewModel.dismissError() },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF007AFF)
                         )
@@ -297,7 +300,9 @@ fun CustomTextField(
                 }
             }
         } else null,
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = if (isPassword) KeyboardType.Password else keyboardType
+        ),
         visualTransformation = if (isPassword && !showPassword) PasswordVisualTransformation() else VisualTransformation.None,
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = Color(0xFFE0E0E0),
@@ -317,11 +322,7 @@ fun CustomTextField(
 @Composable
 fun RegisterScreenPreview() {
     RegisterScreen(
-        onRegisterClick = { _, _, _ -> },
-        onVolverLoginClick = { },
-        showRegisterError = false,
-        onDismissRegisterError = { },
-        showRegisterSuccess = false,
-        onDismissRegisterSuccess = { }
+        onRegisterSuccess = { },
+        onNavigateToLogin = { }
     )
 }
