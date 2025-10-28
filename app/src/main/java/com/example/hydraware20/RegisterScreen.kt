@@ -28,10 +28,7 @@ import com.example.hydraware20.viewModel.AuthViewModel
 
 @Composable
 fun RegisterScreen(
-    // Parámetros de navegación
-    onRegisterSuccess: () -> Unit,
     onNavigateToLogin: () -> Unit,
-    // ViewModel para Firebase Auth
     viewModel: AuthViewModel = viewModel()
 ) {
     var email by remember { mutableStateOf("") }
@@ -42,24 +39,20 @@ fun RegisterScreen(
     var showConfirmPassword by remember { mutableStateOf(false) }
     var isButtonPressed by remember { mutableStateOf(false) }
     
-    // Estados del ViewModel
     val isLoading = viewModel.isLoading
     val authError = viewModel.authError
     
-    // Validación de campos
     val isFormValid = email.isNotBlank() && 
                      password.isNotBlank() && confirmPassword.isNotBlank() && 
                      acceptTerms && password == confirmPassword
     
-    // Reaccionamos al éxito del registro para navegar
     LaunchedEffect(key1 = viewModel.authSuccess) {
         if (viewModel.authSuccess) {
-            onRegisterSuccess() // Navega a la pantalla principal
-            viewModel.resetAuthSuccess() // Resetea el estado
+            onNavigateToLogin()
+            viewModel.resetAuthSuccess()
         }
     }
     
-    // Resetear el estado del botón después de un delay
     LaunchedEffect(key1 = isButtonPressed) {
         if (isButtonPressed) {
             kotlinx.coroutines.delay(200)
@@ -81,7 +74,6 @@ fun RegisterScreen(
         ) {
             Spacer(modifier = Modifier.height(60.dp))
             
-            // App title
             Text(
                 text = "Hydraware",
                 fontSize = 32.sp,
@@ -93,7 +85,6 @@ fun RegisterScreen(
             
             Spacer(modifier = Modifier.height(20.dp))
             
-            // Register section title
             Text(
                 text = "Registro",
                 fontSize = 18.sp,
@@ -105,7 +96,6 @@ fun RegisterScreen(
             
             Spacer(modifier = Modifier.height(24.dp))
             
-            // Email field
             CustomTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -113,7 +103,6 @@ fun RegisterScreen(
                 leadingIcon = Icons.Default.Email
             )
             
-            // Password field
             CustomTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -124,7 +113,6 @@ fun RegisterScreen(
                 onPasswordVisibilityToggle = { showPassword = !showPassword }
             )
             
-            // Confirm Password field
             CustomTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
@@ -135,7 +123,6 @@ fun RegisterScreen(
                 onPasswordVisibilityToggle = { showConfirmPassword = !showConfirmPassword }
             )
             
-            // Accept terms checkbox
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -158,12 +145,10 @@ fun RegisterScreen(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // Register button
             Button(
                 onClick = { 
                     if (isFormValid) {
                         isButtonPressed = true
-                        // Llamar al ViewModel para registrar con Firebase
                         viewModel.registrarUsuario(email.trim(), password.trim())
                     }
                 },
@@ -174,9 +159,9 @@ fun RegisterScreen(
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = when {
-                        isButtonPressed && isFormValid -> Color(0xFF0056CC) // Darker blue when pressed
-                        isFormValid -> Color(0xFF007AFF) // Normal blue
-                        else -> Color(0xFFCCCCCC) // Disabled gray
+                        isButtonPressed && isFormValid -> Color(0xFF0056CC)
+                        isFormValid -> Color(0xFF007AFF)
+                        else -> Color(0xFFCCCCCC)
                     },
                     disabledContainerColor = Color(0xFFCCCCCC)
                 )
@@ -199,7 +184,6 @@ fun RegisterScreen(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // Back to login link
             Column(
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -224,7 +208,6 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.weight(1f))
         }
         
-        // Error AlertDialog - Firebase registration error
         if (authError != null) {
             AlertDialog(
                 onDismissRequest = { viewModel.dismissError() },
@@ -322,7 +305,6 @@ fun CustomTextField(
 @Composable
 fun RegisterScreenPreview() {
     RegisterScreen(
-        onRegisterSuccess = { },
         onNavigateToLogin = { }
     )
 }

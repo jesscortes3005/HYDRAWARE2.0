@@ -129,9 +129,6 @@ fun AppNavigation() {
         }
         "register" -> {
             RegisterScreen(
-                onRegisterSuccess = {
-                    currentScreen = "home"
-                },
                 onNavigateToLogin = {
                     currentScreen = "login"
                 },
@@ -150,5 +147,3 @@ fun AppNavigation() {
         }
     }
 }
-
-
