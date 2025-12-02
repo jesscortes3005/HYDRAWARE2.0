@@ -28,6 +28,12 @@ import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.delay
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.hydraware20.viewModel.AuthViewModel
+import com.example.hydraware20.viewModel.TanqueViewModel
+import com.google.firebase.auth.FirebaseAuth
+
+// Importar TanqueViewModelFactory desde HomeScreen
+import com.example.hydraware20.TanqueViewModelFactory
+import com.example.hydraware20.AnalisisTanqueScreen
 
 // Data class no cambia
 data class User(
@@ -104,15 +110,23 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation() {
     var currentScreen by remember { mutableStateOf("login") }
     var currentUser by remember { mutableStateOf("") }
+    var selectedTanqueId by remember { mutableStateOf<String?>(null) }
     
     // ViewModel compartido para toda la navegación
     val authViewModel: AuthViewModel = viewModel()
+    val context = LocalContext.current
+    val tanqueViewModel: TanqueViewModel = viewModel(factory = TanqueViewModelFactory(context))
 
     // Verificar si hay un usuario logueado al iniciar la app
     LaunchedEffect(Unit) {
-        // Aquí podrías verificar si hay un usuario autenticado en Firebase
-        // Por ahora, empezamos en la pantalla de login
-        currentScreen = "login"
+        val auth = FirebaseAuth.getInstance()
+        val user = auth.currentUser
+        if (user != null) {
+            currentUser = user.email?.substringBefore("@") ?: "Usuario"
+            currentScreen = "home"
+        } else {
+            currentScreen = "login"
+        }
     }
 
     when (currentScreen) {
@@ -120,6 +134,8 @@ fun AppNavigation() {
             LoginScreen(
                 viewModel = authViewModel,
                 onLoginSuccess = {
+                    val auth = FirebaseAuth.getInstance()
+                    currentUser = auth.currentUser?.email?.substringBefore("@") ?: "Usuario"
                     currentScreen = "home"
                 },
                 onNavigateToRegister = {
@@ -136,14 +152,68 @@ fun AppNavigation() {
             )
         }
         "home" -> {
+            // Usar el mismo ViewModel para mantener sincronización
             HomeScreen(
-                userName = currentUser,
+                userName = currentUser.ifEmpty { "Usuario" },
                 onLogoutClick = {
                     currentUser = ""
                     currentScreen = "login"
                 },
-                viewModel = authViewModel
+                viewModel = authViewModel,
+                tanqueViewModel = tanqueViewModel,
+                onAddClick = {
+                    currentScreen = "registrar_tanque"
+                },
+                onVerEstadoClick = { tanqueId ->
+                    selectedTanqueId = tanqueId
+                    currentScreen = "analisis_tanque"
+                }
             )
+        }
+        "registrar_tanque" -> {
+            RegistrarTanqueScreen(
+                viewModel = tanqueViewModel,
+                onClose = {
+                    currentScreen = "home"
+                },
+                onComplete = {
+                    currentScreen = "home"
+                }
+            )
+        }
+        "analisis_tanque" -> {
+            // Buscar el tanque de forma reactiva
+            val tanque = remember(selectedTanqueId, tanqueViewModel.tanques) {
+                selectedTanqueId?.let { id ->
+                    tanqueViewModel.tanques.find { it.id == id }
+                }
+            }
+            
+            if (tanque != null) {
+                AnalisisTanqueScreen(
+                    tanque = tanque,
+                    onBackClick = {
+                        selectedTanqueId = null
+                        currentScreen = "home"
+                    }
+                )
+            } else {
+                // Si no se encuentra el tanque, volver a home después de un momento
+                LaunchedEffect(selectedTanqueId) {
+                    if (selectedTanqueId != null) {
+                        delay(100)
+                        selectedTanqueId = null
+                        currentScreen = "home"
+                    }
+                }
+                // Mostrar loading mientras se busca
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
         }
     }
 }
