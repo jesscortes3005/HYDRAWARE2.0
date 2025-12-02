@@ -43,7 +43,7 @@ fun HomeScreen(
     onVerEstadoClick: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
-    val tanqueViewModelInstance: TanqueViewModel = tanqueViewModel ?: viewModel(factory = TanqueViewModelFactory(context))
+    val tanqueViewModelInstance: TanqueViewModel = tanqueViewModel ?: androidx.lifecycle.viewmodel.compose.viewModel(factory = TanqueViewModelFactory(context))
     Box(
         modifier = Modifier
             .fillMaxSize()
