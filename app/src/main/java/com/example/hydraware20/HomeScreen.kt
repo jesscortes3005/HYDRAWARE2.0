@@ -2,7 +2,10 @@ package com.example.hydraware20
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
@@ -22,12 +25,21 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.animation.core.*
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
+import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.DisposableEffect
 import com.example.hydraware20.model.Tanque
 import com.example.hydraware20.viewModel.AuthViewModel
 import com.example.hydraware20.viewModel.TanqueViewModel
@@ -40,7 +52,9 @@ fun HomeScreen(
     viewModel: AuthViewModel,
     tanqueViewModel: TanqueViewModel? = null,
     onAddClick: () -> Unit = {},
-    onVerEstadoClick: (String) -> Unit = {}
+    onVerEstadoClick: (String) -> Unit = {},
+    onNotificationsClick: () -> Unit = {},
+    currentScreen: String = "home"
 ) {
     val context = LocalContext.current
     val tanqueViewModelInstance: TanqueViewModel = tanqueViewModel ?: androidx.lifecycle.viewmodel.compose.viewModel(factory = TanqueViewModelFactory(context))
@@ -58,36 +72,10 @@ fun HomeScreen(
             // Status bar space
             Spacer(modifier = Modifier.height(40.dp))
             
-            // Logout button - positioned at top right
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                IconButton(
-                    onClick = {
-                        viewModel.cerrarSesion()
-                        onLogoutClick()
-                    },
-                    modifier = Modifier
-                        .size(48.dp)
-                        .background(
-                            color = Color(0xFFF5F5F5),
-                            shape = RoundedCornerShape(24.dp)
-                        )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Logout,
-                        contentDescription = "Cerrar Sesión",
-                        tint = Color(0xFF666666),
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
-            
             // App title
             Text(
                 text = "HYDRAWARE",
-                fontSize = 24.sp,
+                fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black,
                 textAlign = TextAlign.Center,
@@ -100,7 +88,7 @@ fun HomeScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(80.dp),
+                    .height(100.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = Color(0xFF1E40AF) // Dark blue
@@ -109,27 +97,31 @@ fun HomeScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp),
+                        .padding(20.dp),
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
                         text = "BIENVENIDO",
-                        fontSize = 20.sp,
+                        fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
+                    Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = userName,
-                        fontSize = 16.sp,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
                         color = Color.White,
-                        modifier = Modifier.padding(top = 4.dp)
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
             
             Spacer(modifier = Modifier.height(24.dp))
             
-            // Tanques list - Scrollable content
+            // Tanques list - Scrollable content with LazyColumn for performance
             if (tanqueViewModelInstance.tanques.isEmpty()) {
                 Text(
                     text = "No hay tanques registrados.",
@@ -142,26 +134,33 @@ fun HomeScreen(
                 )
                 Spacer(modifier = Modifier.weight(1f))
             } else {
-                // Scrollable content area
-                Column(
+                // Scrollable content area using LazyColumn for better performance
+                // LazyColumn solo renderiza los items visibles, mejorando el rendimiento
+                LazyColumn(
                     modifier = Modifier
                         .weight(1f)
-                        .fillMaxWidth()
-                ) {
-                tanqueViewModelInstance.tanques.forEach { tanque ->
-                    TanqueCard(
-                        tanque = tanque,
-                        onEditClick = { },
-                        onDeleteClick = {
-                            tanqueViewModelInstance.eliminarTanque(tanque.id)
-                        },
-                        onVerEstadoClick = { onVerEstadoClick(tanque.id) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 16.dp),
-                        context = context
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(
+                        top = 8.dp,
+                        bottom = 100.dp // Espacio para la navegación inferior
                     )
-                }
+                ) {
+                    items(
+                        items = tanqueViewModelInstance.tanques,
+                        key = { tanque -> tanque.id }
+                    ) { tanque ->
+                        TanqueCard(
+                            tanque = tanque,
+                            onEditClick = { },
+                            onDeleteClick = {
+                                tanqueViewModelInstance.eliminarTanque(tanque.id)
+                            },
+                            onVerEstadoClick = { onVerEstadoClick(tanque.id) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        )
+                    }
                 }
             }
             
@@ -169,7 +168,8 @@ fun HomeScreen(
             BottomNavigationBar(
                 onHomeClick = { },
                 onAddClick = onAddClick,
-                onNotificationsClick = { }
+                onNotificationsClick = onNotificationsClick,
+                currentScreen = currentScreen
             )
             
             Spacer(modifier = Modifier.height(16.dp))
@@ -181,7 +181,8 @@ fun HomeScreen(
 fun BottomNavigationBar(
     onHomeClick: () -> Unit,
     onAddClick: () -> Unit,
-    onNotificationsClick: () -> Unit
+    onNotificationsClick: () -> Unit,
+    currentScreen: String = "home"
 ) {
     Card(
         modifier = Modifier
@@ -204,19 +205,21 @@ fun BottomNavigationBar(
                 icon = Icons.Default.Home,
                 label = "Home",
                 onClick = onHomeClick,
-                isSelected = true
+                isSelected = currentScreen == "home"
             )
             
             NavigationItem(
                 icon = Icons.Default.Add,
                 label = "Agregar",
-                onClick = onAddClick
+                onClick = onAddClick,
+                isSelected = currentScreen == "registrar_tanque"
             )
             
             NavigationItem(
                 icon = Icons.Default.Notifications,
-                label = "Notificaciones",
-                onClick = onNotificationsClick
+                label = "Yo",
+                onClick = onNotificationsClick,
+                isSelected = currentScreen == "yo" || currentScreen == "notificaciones" || currentScreen == "acerca_de" || currentScreen == "informacion_personal"
             )
         }
     }
@@ -229,26 +232,104 @@ fun NavigationItem(
     onClick: () -> Unit,
     isSelected: Boolean = false
 ) {
+    // Animación para el icono
+    val scale by animateFloatAsState(
+        targetValue = if (isSelected) 1.2f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "icon_scale"
+    )
+    
+    // Animación para el color
+    val iconColor by animateColorAsState(
+        targetValue = if (isSelected) Color(0xFF007AFF) else Color(0xFF999999),
+        animationSpec = tween(300),
+        label = "icon_color"
+    )
+    
+    val textColor by animateColorAsState(
+        targetValue = if (isSelected) Color(0xFF007AFF) else Color(0xFF999999),
+        animationSpec = tween(300),
+        label = "text_color"
+    )
+    
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.clickable(onClick = onClick)
     ) {
-        IconButton(
-            onClick = onClick,
-            modifier = Modifier.size(32.dp)
+        Box(
+            modifier = Modifier
+                .size(48.dp),
+            contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = label,
-                tint = if (isSelected) Color(0xFF007AFF) else Color(0xFF007AFF),
-                modifier = Modifier.size(24.dp)
+                tint = iconColor,
+                modifier = Modifier
+                    .size(24.dp)
+                    .scale(scale)
             )
         }
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = label,
             fontSize = 12.sp,
-            color = Color(0xFF007AFF),
+            color = textColor,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+        )
+    }
+}
+
+// Función para obtener el emoji del pez según el nombre del tanque
+fun getPezEmoji(nombreTanque: String): String {
+    val nombreLower = nombreTanque.lowercase()
+    return when {
+        nombreLower.contains("tilapia") -> "🐟"
+        nombreLower.contains("bagre") -> "🐠"
+        nombreLower.contains("carpa") -> "🐡"
+        nombreLower.contains("trucha") -> "🐟"
+        nombreLower.contains("lobina") -> "🐠"
+        nombreLower.contains("camarón") || nombreLower.contains("camaron") -> "🦐"
+        else -> "🐟" // Default
+    }
+}
+
+@Composable
+fun AnimatedFishIcon(nombreTanque: String) {
+    val infiniteTransition = rememberInfiniteTransition(label = "fish_animation")
+    val offsetX by infiniteTransition.animateFloat(
+        initialValue = -5f,
+        targetValue = 5f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "offset_x"
+    )
+    
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 0.9f,
+        targetValue = 1.1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scale"
+    )
+    
+    Box(
+        modifier = Modifier
+            .offset(x = offsetX.dp)
+            .scale(scale),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = getPezEmoji(nombreTanque),
+            fontSize = 50.sp
         )
     }
 }
@@ -259,19 +340,42 @@ fun TanqueCard(
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
     onVerEstadoClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    context: android.content.Context? = null
+    modifier: Modifier = Modifier
 ) {
     // ViewModel para simular el estado del tanque - usar remember para mantener la instancia
-    val statusViewModel = remember(tanque.id) {
-        TanqueStatusSimulatorViewModel(tanque)
+    // Solo crear ViewModel si el tanque tiene parámetros definidos para optimizar rendimiento
+    val statusViewModel = remember(tanque.id, tanque.definirPH, tanque.definirTemperatura) {
+        if (tanque.definirPH || tanque.definirTemperatura) {
+            TanqueStatusSimulatorViewModel(tanque)
+        } else {
+            null
+        }
     }
     
-    // Observar los StateFlows del ViewModel
-    val phValue by statusViewModel.phValue.collectAsState()
-    val tempValue by statusViewModel.tempValue.collectAsState()
-    val phEstado by statusViewModel.phEstado.collectAsState()
-    val tempEstado by statusViewModel.tempEstado.collectAsState()
+    // Observar los StateFlows del ViewModel de forma optimizada
+    val phValue by if (statusViewModel != null && tanque.definirPH) {
+        statusViewModel.phValue.collectAsState()
+    } else {
+        remember { mutableStateOf(0f) }
+    }
+    
+    val tempValue by if (statusViewModel != null && tanque.definirTemperatura) {
+        statusViewModel.tempValue.collectAsState()
+    } else {
+        remember { mutableStateOf(0f) }
+    }
+    
+    val phEstado by if (statusViewModel != null && tanque.definirPH) {
+        statusViewModel.phEstado.collectAsState()
+    } else {
+        remember { mutableStateOf(com.example.hydraware20.viewModel.EstadoSimulacion.NORMAL) }
+    }
+    
+    val tempEstado by if (statusViewModel != null && tanque.definirTemperatura) {
+        statusViewModel.tempEstado.collectAsState()
+    } else {
+        remember { mutableStateOf(com.example.hydraware20.viewModel.EstadoSimulacion.NORMAL) }
+    }
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
@@ -298,25 +402,18 @@ fun TanqueCard(
                     // Fish icon - Square blue box with rounded corners
                     Box(
                         modifier = Modifier
-                            .size(70.dp)
+                            .size(80.dp)
                             .background(
                                 color = Color(0xFF007AFF), // Blue background
                                 shape = RoundedCornerShape(12.dp)
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        // Fish emoji with water waves
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = "🐟",
-                                fontSize = 40.sp
-                            )
-                        }
+                        // Animated fish emoji
+                        AnimatedFishIcon(nombreTanque = tanque.nombre)
                     }
                     
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                     
                     Text(
                         text = tanque.nombre,
@@ -340,21 +437,22 @@ fun TanqueCard(
                         ) {
                             Text(
                                 text = "Nivel pH",
-                                fontSize = 11.sp,
-                                color = Color(0xFF999999)
+                                fontSize = 14.sp,
+                                color = Color(0xFF999999),
+                                fontWeight = FontWeight.Medium
                             )
-                            // Mostrar valor simulado
+                            // Mostrar valor simulado con color según estado
                             Text(
                                 text = "${phValue.toInt()}",
-                                fontSize = 18.sp,
+                                fontSize = 22.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.Black,
+                                color = if (statusViewModel != null) statusViewModel.getEstadoColor(phEstado) else Color(0xFF4CAF50),
                                 modifier = Modifier.padding(vertical = 2.dp)
                             )
                             Text(
-                                text = statusViewModel.getEstadoTexto(phEstado),
+                                text = if (statusViewModel != null) statusViewModel.getEstadoTexto(phEstado) else "Normal",
                                 fontSize = 11.sp,
-                                color = statusViewModel.getEstadoColor(phEstado)
+                                color = if (statusViewModel != null) statusViewModel.getEstadoColor(phEstado) else Color(0xFF4CAF50)
                             )
                         }
                     }
@@ -366,21 +464,22 @@ fun TanqueCard(
                         ) {
                             Text(
                                 text = "Temperatura",
-                                fontSize = 11.sp,
-                                color = Color(0xFF999999)
+                                fontSize = 14.sp,
+                                color = Color(0xFF999999),
+                                fontWeight = FontWeight.Medium
                             )
-                            // Mostrar valor simulado
+                            // Mostrar valor simulado con color según estado
                             Text(
                                 text = "${tempValue.toInt()}°C",
-                                fontSize = 18.sp,
+                                fontSize = 22.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.Black,
+                                color = if (statusViewModel != null) statusViewModel.getEstadoColor(tempEstado) else Color(0xFF4CAF50),
                                 modifier = Modifier.padding(vertical = 2.dp)
                             )
                             Text(
-                                text = statusViewModel.getEstadoTexto(tempEstado),
+                                text = if (statusViewModel != null) statusViewModel.getEstadoTexto(tempEstado) else "Normal",
                                 fontSize = 11.sp,
-                                color = statusViewModel.getEstadoColor(tempEstado)
+                                color = if (statusViewModel != null) statusViewModel.getEstadoColor(tempEstado) else Color(0xFF4CAF50)
                             )
                         }
                     }

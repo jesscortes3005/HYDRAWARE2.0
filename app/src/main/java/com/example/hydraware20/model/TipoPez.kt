@@ -10,17 +10,12 @@ data class TipoPez(
 
 object TiposPezRecomendados {
     val tipos = listOf(
-        TipoPez("Guppy", 6.8f, 7.8f, 22f, 28f),
-        TipoPez("Betta", 6.0f, 7.5f, 24f, 30f),
-        TipoPez("Goldfish", 6.0f, 8.0f, 18f, 24f),
-        TipoPez("Tetra", 6.0f, 7.5f, 22f, 28f),
-        TipoPez("Cíclido", 7.0f, 8.5f, 24f, 28f),
-        TipoPez("Molly", 7.0f, 8.5f, 22f, 28f),
-        TipoPez("Platy", 7.0f, 8.5f, 20f, 26f),
-        TipoPez("Angelfish", 6.0f, 7.5f, 24f, 30f),
-        TipoPez("Discus", 5.5f, 7.0f, 26f, 30f),
-        TipoPez("Neón", 5.5f, 7.0f, 20f, 26f),
-        TipoPez("Genérico/Tropical", 6.5f, 7.5f, 24f, 28f)
+        TipoPez("Tilapia", 6.5f, 8.5f, 25f, 32f),
+        TipoPez("Bagre", 6.5f, 8.0f, 24f, 30f),
+        TipoPez("Carpa", 6.5f, 9.0f, 20f, 30f),
+        TipoPez("Trucha", 6.5f, 8.0f, 10f, 18f),
+        TipoPez("Lobina", 6.5f, 8.5f, 20f, 28f),
+        TipoPez("Camarón", 7.5f, 8.5f, 28f, 32f)
     )
 }
 

@@ -113,8 +113,8 @@ class TanqueStatusSimulatorViewModel(private val tanque: Tanque) : ViewModel() {
                 _phEstado.value = estadoActual
                 _tempEstado.value = estadoActual
                 
-                delay(1000) // Actualizar cada segundo
-                tiempoEnEstado += 1000
+                delay(3000) // Actualizar cada 3 segundos para mejor rendimiento
+                tiempoEnEstado += 3000
             }
         }
     }
@@ -130,10 +130,10 @@ class TanqueStatusSimulatorViewModel(private val tanque: Tanque) : ViewModel() {
     
     fun getEstadoColor(estado: EstadoSimulacion): androidx.compose.ui.graphics.Color {
         return when (estado) {
-            EstadoSimulacion.BAJO -> androidx.compose.ui.graphics.Color(0xFF2196F3) // Azul
+            EstadoSimulacion.BAJO -> androidx.compose.ui.graphics.Color(0xFF1976D2) // Azul fuerte
             EstadoSimulacion.NORMAL -> androidx.compose.ui.graphics.Color(0xFF4CAF50) // Verde
             EstadoSimulacion.ADVERTENCIA -> androidx.compose.ui.graphics.Color(0xFFFF9800) // Naranja
-            EstadoSimulacion.PELIGRO -> androidx.compose.ui.graphics.Color(0xFFF44336) // Rojo
+            EstadoSimulacion.PELIGRO -> androidx.compose.ui.graphics.Color(0xFFD32F2F) // Rojo fuerte
         }
     }
     

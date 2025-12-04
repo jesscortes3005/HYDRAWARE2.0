@@ -22,6 +22,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
+import androidx.compose.ui.draw.scale
 import com.example.hydraware20.ui.theme.Hydraware20Theme
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -34,6 +37,9 @@ import com.google.firebase.auth.FirebaseAuth
 // Importar TanqueViewModelFactory desde HomeScreen
 import com.example.hydraware20.TanqueViewModelFactory
 import com.example.hydraware20.AnalisisTanqueScreen
+import com.example.hydraware20.NotificacionesScreen
+import com.example.hydraware20.YoScreen
+import com.example.hydraware20.viewModel.NotificacionesViewModel
 
 // Data class no cambia
 data class User(
@@ -129,7 +135,23 @@ fun AppNavigation() {
         }
     }
 
-    when (currentScreen) {
+    AnimatedContent(
+        targetState = currentScreen,
+        transitionSpec = {
+            // Transición de deslizamiento horizontal con fade
+            (fadeIn(animationSpec = tween(300)) + 
+            slideInHorizontally(
+                initialOffsetX = { fullWidth -> fullWidth },
+                animationSpec = tween(300)
+            )) togetherWith (fadeOut(animationSpec = tween(300)) + 
+            slideOutHorizontally(
+                targetOffsetX = { fullWidth -> -fullWidth },
+                animationSpec = tween(300)
+            ))
+        },
+        label = "screen_transition"
+    ) { screen ->
+        when (screen) {
         "login" -> {
             LoginScreen(
                 viewModel = authViewModel,
@@ -167,6 +189,53 @@ fun AppNavigation() {
                 onVerEstadoClick = { tanqueId ->
                     selectedTanqueId = tanqueId
                     currentScreen = "analisis_tanque"
+                },
+                onNotificationsClick = {
+                    currentScreen = "yo"
+                },
+                currentScreen = currentScreen
+            )
+        }
+        "yo" -> {
+            val notificacionesViewModel = remember {
+                NotificacionesViewModel(tanqueViewModel.tanques)
+            }
+            
+            // Actualizar ViewModel cuando cambian los tanques
+            LaunchedEffect(tanqueViewModel.tanques) {
+                notificacionesViewModel.actualizarTanques(tanqueViewModel.tanques)
+            }
+            
+            YoScreen(
+                viewModel = notificacionesViewModel,
+                onBackClick = {
+                    currentScreen = "home"
+                },
+                onNotificationsClick = {
+                    currentScreen = "notificaciones"
+                },
+                onAcercaDeClick = {
+                    currentScreen = "acerca_de"
+                },
+                onInformacionPersonalClick = {
+                    currentScreen = "informacion_personal"
+                }
+            )
+        }
+        "notificaciones" -> {
+            val notificacionesViewModel = remember {
+                NotificacionesViewModel(tanqueViewModel.tanques)
+            }
+            
+            // Actualizar ViewModel cuando cambian los tanques
+            LaunchedEffect(tanqueViewModel.tanques) {
+                notificacionesViewModel.actualizarTanques(tanqueViewModel.tanques)
+            }
+            
+            NotificacionesScreen(
+                viewModel = notificacionesViewModel,
+                onBackClick = {
+                    currentScreen = "yo"
                 }
             )
         }
@@ -214,6 +283,7 @@ fun AppNavigation() {
                     CircularProgressIndicator()
                 }
             }
+        }
         }
     }
 }

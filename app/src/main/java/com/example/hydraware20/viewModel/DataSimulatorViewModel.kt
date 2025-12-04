@@ -110,7 +110,7 @@ class DataSimulatorViewModel(private val tanque: Tanque) : ViewModel() {
         
         viewModelScope.launch {
             while (isSimulating) {
-                delay(2000) // Actualizar cada 2 segundos
+                delay(3000) // Actualizar cada 3 segundos para mejor rendimiento
                 
                 val phMin = tanque.phMin ?: 6f
                 val phMax = tanque.phMax ?: 8f

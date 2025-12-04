@@ -519,6 +519,11 @@ fun RegistrarTanqueScreen(
                                     // Auto-marcar las opciones cuando se selecciona un tipo
                                     definirPH = true
                                     definirTemperatura = true
+                                    // Llenar automáticamente los campos de pH y temperatura
+                                    phMin = tipo.phMin.toString()
+                                    phMax = tipo.phMax.toString()
+                                    temperaturaMin = tipo.temperaturaMin.toString()
+                                    temperaturaMax = tipo.temperaturaMax.toString()
                                 },
                             shape = RoundedCornerShape(8.dp),
                             colors = CardDefaults.cardColors(
