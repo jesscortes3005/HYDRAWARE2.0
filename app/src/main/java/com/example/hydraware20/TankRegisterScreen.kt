@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RectangleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -16,8 +15,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.hydraware20.Tank
 import com.example.hydraware20.viewModel.TankViewModel
 
 @Composable
@@ -79,14 +80,15 @@ fun TankRegisterScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Header
-            Box(
-                modifier = Modifier.fillMaxWidth()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
                     onClick = onClose,
                     modifier = Modifier
                         .size(40.dp)
-                        .align(Alignment.CenterStart)
                         .background(color = Color(0xFFF0F0F0), shape = RoundedCornerShape(20.dp))
                 ) {
                     Icon(
@@ -100,8 +102,10 @@ fun TankRegisterScreen(
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF1A1A1A),
-                    modifier = Modifier.align(Alignment.Center)
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center
                 )
+                Spacer(modifier = Modifier.width(40.dp)) // Espacio para balancear el layout
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -305,14 +309,14 @@ fun SquareSwitch(
     Box(
         modifier = modifier
             .size(20.dp)
-            .clip(RectangleShape)
+            .clip(RoundedCornerShape(2.dp))
             .background(
                 if (checked) Color(0xFF007AFF) else Color.White
             )
             .border(
                 width = 1.dp,
                 color = if (checked) Color(0xFF007AFF) else Color(0xFFD0D0D0),
-                shape = RectangleShape
+                shape = RoundedCornerShape(2.dp)
             )
             .clickable { onCheckedChange(!checked) },
         contentAlignment = Alignment.Center

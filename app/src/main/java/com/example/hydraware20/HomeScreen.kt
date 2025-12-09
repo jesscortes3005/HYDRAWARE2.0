@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.clickable
+import com.example.hydraware20.Tank
 import com.example.hydraware20.viewModel.AuthViewModel
 import com.example.hydraware20.viewModel.TankViewModel
 import com.example.hydraware20.viewModel.NotificationViewModel
@@ -173,6 +173,51 @@ fun HomeScreen(
 }
 
 @Composable
+fun TankCard(tank: Tank) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text(
+                text = tank.name,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1A1A1A)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            if (tank.phMin != null && tank.phMax != null) {
+                Text(
+                    text = "pH: ${tank.phMin} - ${tank.phMax}",
+                    fontSize = 14.sp,
+                    color = Color(0xFF666666),
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+            }
+            
+            if (tank.tempMin != null && tank.tempMax != null) {
+                Text(
+                    text = "Temperatura: ${tank.tempMin}°C - ${tank.tempMax}°C",
+                    fontSize = 14.sp,
+                    color = Color(0xFF666666)
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun BottomNavigationBar(
     onHomeClick: () -> Unit,
     onAddClick: () -> Unit,
@@ -209,9 +254,7 @@ fun BottomNavigationBar(
                 onClick = onAddClick
             )
             
-            Box(
-                modifier = Modifier
-            ) {
+            Box {
                 NavigationItem(
                     icon = Icons.Default.Notifications,
                     label = "Notificaciones",
@@ -273,60 +316,17 @@ fun NavigationItem(
     }
 }
 
-@Composable
-fun TankCard(tank: Tank) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 4.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Text(
-                text = tank.name,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF1A1A1A)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            if (tank.phMin != null && tank.phMax != null) {
-                Text(
-                    text = "pH: ${tank.phMin} - ${tank.phMax}",
-                    fontSize = 14.sp,
-                    color = Color(0xFF666666),
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
-            }
-            
-            if (tank.tempMin != null && tank.tempMax != null) {
-                Text(
-                    text = "Temperatura: ${tank.tempMin}°C - ${tank.tempMax}°C",
-                    fontSize = 14.sp,
-                    color = Color(0xFF666666)
-                )
-            }
-        }
-    }
-}
-
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
-    // Para el preview, creamos un ViewModel mock
+    // Preview comentado porque requiere ViewModels reales con contexto
     // HomeScreen(
     //     userName = "Usuario de Prueba",
     //     onLogoutClick = { },
     //     viewModel = AuthViewModel(),
     //     onAddTankClick = { },
-    //     tankViewModel = TankViewModel(context)
+    //     tankViewModel = TankViewModel(context),
+    //     onNotificationsClick = { },
+    //     notificationViewModel = NotificationViewModel(context)
     // )
 }

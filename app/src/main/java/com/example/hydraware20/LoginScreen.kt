@@ -1,6 +1,5 @@
 package com.example.hydraware20
 
-// Imports necesarios (algunos son nuevos)
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,29 +34,24 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onNavigateToRegister: () -> Unit
 ) {
-    // --- Tus estados de UI (se mantienen igual) ---
-    var usuario by remember { mutableStateOf("") } // Esto será el email
+    var usuario by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
     var isButtonPressed by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
-    // --- Leemos el estado DESDE el ViewModel ---
     val isLoading = viewModel.isLoading
     val authError = viewModel.authError
 
-    // 3. Reaccionamos al éxito del login para navegar
     LaunchedEffect(key1 = viewModel.authSuccess) {
         if (viewModel.authSuccess) {
-            onLoginSuccess() // ¡Navega a la pantalla principal!
-            viewModel.resetAuthSuccess() // Resetea el estado
+            onLoginSuccess()
+            viewModel.resetAuthSuccess()
         }
     }
 
-    // Validación de campos
     val isFormValid = usuario.isNotBlank() && password.isNotBlank()
 
-    // --- Tu diseño (se mantiene 99% igual) ---
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -94,15 +88,13 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Usuario (Email) field
             CustomTextField(
                 value = usuario,
                 onValueChange = { usuario = it },
-                placeholder = "Email", // Cambiado a Email, ya que Firebase lo requiere
+                placeholder = "Email",
                 leadingIcon = Icons.Default.Person
             )
 
-            // Password field
             CustomTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -115,7 +107,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Registration prompt
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -128,7 +119,6 @@ fun LoginScreen(
                     textAlign = TextAlign.Center
                 )
                 TextButton(
-                    // 4. CAMBIO: Llama al parámetro de navegación
                     onClick = onNavigateToRegister,
                     contentPadding = PaddingValues(0.dp)
                 ) {
@@ -143,12 +133,10 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Login button
             Button(
                 onClick = {
                     if (isFormValid) {
                         isButtonPressed = true
-                        // 5. CAMBIO: Llama al ViewModel en lugar del lambda
                         viewModel.iniciarSesion(usuario.trim(), password.trim())
 
                         coroutineScope.launch {
@@ -157,7 +145,6 @@ fun LoginScreen(
                         }
                     }
                 },
-                // 6. CAMBIO: Deshabilitado si es válido O si está cargando
                 enabled = isFormValid && !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -165,14 +152,13 @@ fun LoginScreen(
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = when {
-                        isButtonPressed && isFormValid -> Color(0xFF0056CC) // Darker blue when pressed
-                        isFormValid -> Color(0xFF007AFF) // Normal blue
-                        else -> Color(0xFFCCCCCC) // Disabled gray
+                        isButtonPressed && isFormValid -> Color(0xFF0056CC)
+                        isFormValid -> Color(0xFF007AFF)
+                        else -> Color(0xFFCCCCCC)
                     },
                     disabledContainerColor = Color(0xFFCCCCCC)
                 )
             ) {
-                // 7. CAMBIO: Muestra un indicador de carga si es necesario
                 if (isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
@@ -192,10 +178,9 @@ fun LoginScreen(
             Spacer(modifier = Modifier.weight(1f))
         }
 
-        // 8. CAMBIO: El AlertDialog ahora es controlado por el ViewModel
         if (authError != null) {
             AlertDialog(
-                onDismissRequest = { viewModel.dismissError() }, // Llama al ViewModel para cerrar
+                onDismissRequest = { viewModel.dismissError() },
                 title = {
                     Text(
                         text = "Error de Inicio de Sesión",
@@ -205,14 +190,13 @@ fun LoginScreen(
                 },
                 text = {
                     Text(
-                        // Muestra el error específico del ViewModel
                         text = authError,
                         color = Color(0xFF333333)
                     )
                 },
                 confirmButton = {
                     Button(
-                        onClick = { viewModel.dismissError() }, // Llama al ViewModel para cerrar
+                        onClick = { viewModel.dismissError() },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF007AFF)
                         )
@@ -228,7 +212,7 @@ fun LoginScreen(
     }
 }
 
-// --- Tu Composable (sin cambios) ---
+// Este Composable ya existe en RegisterScreen.kt, pero se necesita aquí también.
 @Composable
 fun CustomTextField(
     value: String,
@@ -270,7 +254,7 @@ fun CustomTextField(
             }
         } else null,
         keyboardOptions = KeyboardOptions(
-            keyboardType = if (isPassword) KeyboardType.Password else KeyboardType.Email // Cambiado a Email
+            keyboardType = if (isPassword) KeyboardType.Password else KeyboardType.Email
         ),
         visualTransformation = if (isPassword && !showPassword) PasswordVisualTransformation() else VisualTransformation.None,
         colors = OutlinedTextFieldDefaults.colors(
@@ -287,12 +271,9 @@ fun CustomTextField(
     )
 }
 
-// --- Tu Preview (modificada para la nueva firma) ---
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
-    // La preview no puede crear un ViewModel real,
-    // pero podemos ver el diseño estático.
     LoginScreen(
         onLoginSuccess = {},
         onNavigateToRegister = {}

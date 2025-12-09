@@ -22,12 +22,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.hydraware20.ui.theme.Hydraware20Theme
-import com.example.hydraware20.service.NotificationService
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.delay
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.hydraware20.ui.theme.Hydraware20Theme
+import com.example.hydraware20.service.NotificationService
 import com.example.hydraware20.viewModel.AuthViewModel
 import com.example.hydraware20.viewModel.TankViewModel
 import com.example.hydraware20.viewModel.NotificationViewModel
@@ -132,7 +132,7 @@ class TankRepository(private val context: Context) {
     }
 }
 
-// MainActivity no cambia
+// MainActivity
 class MainActivity : ComponentActivity() {
     @Suppress("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
