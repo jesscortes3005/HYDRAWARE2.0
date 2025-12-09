@@ -1,0 +1,21 @@
+═══════════════════════════════════════════════════════════
+  ⚡ FORMA MÁS FÁCIL - Solo 3 Pasos
+═══════════════════════════════════════════════════════════
+
+PASO 1: En la página de GitHub que se abrió:
+        → Haz click en el botón "Fork" (arriba a la derecha)
+        → Espera a que se cree tu fork
+
+PASO 2: Vuelve aquí y ejecuta:
+        .\push_a_fork.ps1
+        
+        O simplemente dime tu usuario de GitHub y yo lo hago
+
+PASO 3: Después del push, ve a tu fork y crea un Pull Request
+        para que tu código aparezca en el repositorio global
+
+═══════════════════════════════════════════════════════════
+
+¿Ya hiciste el fork? Si sí, dime tu usuario de GitHub
+y lo configuro todo automáticamente ahora mismo.
+

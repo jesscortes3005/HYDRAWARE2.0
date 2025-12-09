@@ -1,0 +1,40 @@
+═══════════════════════════════════════════════════════════
+  ⚠️ PROBLEMA CON EL TOKEN
+═══════════════════════════════════════════════════════════
+
+El token no está funcionando. Posibles causas:
+
+1. El token NO tiene el scope "repo" marcado
+   → Ve a: https://github.com/settings/tokens
+   → Verifica que tu token tenga la casilla "repo" marcada
+   → Si no, crea uno nuevo
+
+2. El token puede haber expirado o estar revocado
+
+3. El fork puede no haberse creado correctamente
+
+═══════════════════════════════════════════════════════════
+  SOLUCIÓN RÁPIDA:
+═══════════════════════════════════════════════════════════
+
+1. Ve a: https://github.com/settings/tokens
+2. Crea un NUEVO token con estos pasos:
+   - Nombre: "HYDRAWARE Push"
+   - Expiración: 90 days
+   - ✅ MARCAR "repo" (MUY IMPORTANTE)
+   - Click en "Generate token"
+   - Copia el nuevo token
+
+3. Dime el nuevo token y lo uso
+
+O si prefieres, puedes hacer el push manualmente:
+- Ejecuta: git push -u origin main
+- Usuario: emmanuelmg-19
+- Contraseña: pega tu token
+
+═══════════════════════════════════════════════════════════
+
+¿Puedes verificar que tu token tenga el scope "repo" marcado?
+
+
+
