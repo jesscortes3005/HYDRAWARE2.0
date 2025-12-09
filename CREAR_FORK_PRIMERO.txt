@@ -1,0 +1,27 @@
+═══════════════════════════════════════════════════════════
+  ⚠️ NECESITAS CREAR EL FORK PRIMERO
+═══════════════════════════════════════════════════════════
+
+El repositorio fork no existe todavía. Necesitas crearlo.
+
+═══════════════════════════════════════════════════════════
+  PASOS RÁPIDOS:
+═══════════════════════════════════════════════════════════
+
+1. En la página que se abrió (o ve a):
+   https://github.com/jesscortes3005/HYDRAWARE2.0
+
+2. Haz click en el botón "Fork" (arriba a la derecha)
+
+3. Espera a que se cree tu fork (puede tardar unos segundos)
+
+4. Cuando esté listo, dime "fork creado" o "listo" y haré
+   el push inmediatamente usando tu token
+
+═══════════════════════════════════════════════════════════
+
+Ya abrí la página para que hagas el fork.
+¿Puedes hacerlo ahora? Cuando esté listo, dime y haré el push.
+
+
+

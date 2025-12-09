@@ -22,29 +22,30 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
-import androidx.compose.ui.draw.scale
-import com.example.hydraware20.ui.theme.Hydraware20Theme
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.delay
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.hydraware20.ui.theme.Hydraware20Theme
+import com.example.hydraware20.service.NotificationService
 import com.example.hydraware20.viewModel.AuthViewModel
-import com.example.hydraware20.viewModel.TanqueViewModel
-import com.google.firebase.auth.FirebaseAuth
-
-// Importar TanqueViewModelFactory desde HomeScreen
-import com.example.hydraware20.TanqueViewModelFactory
-import com.example.hydraware20.AnalisisTanqueScreen
-import com.example.hydraware20.NotificacionesScreen
-import com.example.hydraware20.YoScreen
-import com.example.hydraware20.viewModel.NotificacionesViewModel
+import com.example.hydraware20.viewModel.TankViewModel
+import com.example.hydraware20.viewModel.NotificationViewModel
 
 // Data class no cambia
 data class User(
     val usuario: String,
     val password: String
+)
+
+// Data class para Tanques
+data class Tank(
+    val id: String = System.currentTimeMillis().toString(),
+    val name: String,
+    val phMin: Double? = null,
+    val phMax: Double? = null,
+    val tempMin: Double? = null,
+    val tempMax: Double? = null
 )
 
 // UserRepository no cambia
@@ -96,11 +97,50 @@ class UserRepository(private val context: Context) {
     }
 }
 
-// MainActivity no cambia
+// TankRepository
+class TankRepository(private val context: Context) {
+    private val sharedPreferences: SharedPreferences =
+        context.getSharedPreferences("tank_data", Context.MODE_PRIVATE)
+    private val gson = Gson()
+
+    fun saveTank(tank: Tank): Boolean {
+        val tanks = getTanks().toMutableList()
+        tanks.add(tank)
+        val tanksJson = gson.toJson(tanks)
+        sharedPreferences.edit()
+            .putString("tanks", tanksJson)
+            .apply()
+        return true
+    }
+
+    fun getTanks(): List<Tank> {
+        val tanksJson = sharedPreferences.getString("tanks", "[]")
+        val type = object : TypeToken<List<Tank>>() {}.type
+        return gson.fromJson(tanksJson, type) ?: emptyList()
+    }
+
+    fun deleteTank(tankId: String): Boolean {
+        val tanks = getTanks().toMutableList()
+        val removed = tanks.removeAll { it.id == tankId }
+        if (removed) {
+            val tanksJson = gson.toJson(tanks)
+            sharedPreferences.edit()
+                .putString("tanks", tanksJson)
+                .apply()
+        }
+        return removed
+    }
+}
+
+// MainActivity
 class MainActivity : ComponentActivity() {
     @Suppress("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Inicializar el canal de notificaciones
+        NotificationService.createNotificationChannel(this)
+        
         enableEdgeToEdge()
         setContent {
             Hydraware20Theme {
@@ -116,48 +156,30 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation() {
     var currentScreen by remember { mutableStateOf("login") }
     var currentUser by remember { mutableStateOf("") }
-    var selectedTanqueId by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
     
     // ViewModel compartido para toda la navegación
     val authViewModel: AuthViewModel = viewModel()
-    val context = LocalContext.current
-    val tanqueViewModel: TanqueViewModel = viewModel(factory = TanqueViewModelFactory(context))
+    val tankViewModel: TankViewModel = remember { TankViewModel(context.applicationContext) }
+    val notificationViewModel: NotificationViewModel = remember { NotificationViewModel(context.applicationContext) }
+
+    // Conectar el NotificationViewModel con el TankViewModel
+    LaunchedEffect(Unit) {
+        tankViewModel.setNotificationViewModel(notificationViewModel)
+    }
 
     // Verificar si hay un usuario logueado al iniciar la app
     LaunchedEffect(Unit) {
-        val auth = FirebaseAuth.getInstance()
-        val user = auth.currentUser
-        if (user != null) {
-            currentUser = user.email?.substringBefore("@") ?: "Usuario"
-            currentScreen = "home"
-        } else {
-            currentScreen = "login"
-        }
+        // Aquí podrías verificar si hay un usuario autenticado en Firebase
+        // Por ahora, empezamos en la pantalla de login
+        currentScreen = "login"
     }
 
-    AnimatedContent(
-        targetState = currentScreen,
-        transitionSpec = {
-            // Transición de deslizamiento horizontal con fade
-            (fadeIn(animationSpec = tween(300)) + 
-            slideInHorizontally(
-                initialOffsetX = { fullWidth -> fullWidth },
-                animationSpec = tween(300)
-            )) togetherWith (fadeOut(animationSpec = tween(300)) + 
-            slideOutHorizontally(
-                targetOffsetX = { fullWidth -> -fullWidth },
-                animationSpec = tween(300)
-            ))
-        },
-        label = "screen_transition"
-    ) { screen ->
-        when (screen) {
+    when (currentScreen) {
         "login" -> {
             LoginScreen(
                 viewModel = authViewModel,
                 onLoginSuccess = {
-                    val auth = FirebaseAuth.getInstance()
-                    currentUser = auth.currentUser?.email?.substringBefore("@") ?: "Usuario"
                     currentScreen = "home"
                 },
                 onNavigateToRegister = {
@@ -167,6 +189,9 @@ fun AppNavigation() {
         }
         "register" -> {
             RegisterScreen(
+                onRegisterSuccess = {
+                    currentScreen = "home"
+                },
                 onNavigateToLogin = {
                     currentScreen = "login"
                 },
@@ -174,116 +199,33 @@ fun AppNavigation() {
             )
         }
         "home" -> {
-            // Usar el mismo ViewModel para mantener sincronización
             HomeScreen(
-                userName = currentUser.ifEmpty { "Usuario" },
+                userName = currentUser,
                 onLogoutClick = {
                     currentUser = ""
                     currentScreen = "login"
                 },
                 viewModel = authViewModel,
-                tanqueViewModel = tanqueViewModel,
-                onAddClick = {
-                    currentScreen = "registrar_tanque"
-                },
-                onVerEstadoClick = { tanqueId ->
-                    selectedTanqueId = tanqueId
-                    currentScreen = "analisis_tanque"
-                },
-                onNotificationsClick = {
-                    currentScreen = "yo"
-                },
-                currentScreen = currentScreen
+                onAddTankClick = { currentScreen = "tank_register" },
+                tankViewModel = tankViewModel,
+                onNotificationsClick = { currentScreen = "notifications" },
+                notificationViewModel = notificationViewModel
             )
         }
-        "yo" -> {
-            val notificacionesViewModel = remember {
-                NotificacionesViewModel(tanqueViewModel.tanques)
-            }
-            
-            // Actualizar ViewModel cuando cambian los tanques
-            LaunchedEffect(tanqueViewModel.tanques) {
-                notificacionesViewModel.actualizarTanques(tanqueViewModel.tanques)
-            }
-            
-            YoScreen(
-                viewModel = notificacionesViewModel,
-                onBackClick = {
-                    currentScreen = "home"
-                },
-                onNotificationsClick = {
-                    currentScreen = "notificaciones"
-                },
-                onAcercaDeClick = {
-                    currentScreen = "acerca_de"
-                },
-                onInformacionPersonalClick = {
-                    currentScreen = "informacion_personal"
-                }
+        "tank_register" -> {
+            TankRegisterScreen(
+                onClose = { currentScreen = "home" },
+                onComplete = { currentScreen = "home" },
+                viewModel = tankViewModel
             )
         }
-        "notificaciones" -> {
-            val notificacionesViewModel = remember {
-                NotificacionesViewModel(tanqueViewModel.tanques)
-            }
-            
-            // Actualizar ViewModel cuando cambian los tanques
-            LaunchedEffect(tanqueViewModel.tanques) {
-                notificacionesViewModel.actualizarTanques(tanqueViewModel.tanques)
-            }
-            
-            NotificacionesScreen(
-                viewModel = notificacionesViewModel,
-                onBackClick = {
-                    currentScreen = "yo"
-                }
+        "notifications" -> {
+            NotificationScreen(
+                onBackClick = { currentScreen = "home" },
+                viewModel = notificationViewModel
             )
-        }
-        "registrar_tanque" -> {
-            RegistrarTanqueScreen(
-                viewModel = tanqueViewModel,
-                onClose = {
-                    currentScreen = "home"
-                },
-                onComplete = {
-                    currentScreen = "home"
-                }
-            )
-        }
-        "analisis_tanque" -> {
-            // Buscar el tanque de forma reactiva
-            val tanque = remember(selectedTanqueId, tanqueViewModel.tanques) {
-                selectedTanqueId?.let { id ->
-                    tanqueViewModel.tanques.find { it.id == id }
-                }
-            }
-            
-            if (tanque != null) {
-                AnalisisTanqueScreen(
-                    tanque = tanque,
-                    onBackClick = {
-                        selectedTanqueId = null
-                        currentScreen = "home"
-                    }
-                )
-            } else {
-                // Si no se encuentra el tanque, volver a home después de un momento
-                LaunchedEffect(selectedTanqueId) {
-                    if (selectedTanqueId != null) {
-                        delay(100)
-                        selectedTanqueId = null
-                        currentScreen = "home"
-                    }
-                }
-                // Mostrar loading mientras se busca
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
-        }
         }
     }
 }
+
+

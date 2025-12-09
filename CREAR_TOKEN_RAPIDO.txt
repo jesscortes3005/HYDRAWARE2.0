@@ -1,0 +1,21 @@
+═══════════════════════════════════════════════════════════
+  CREAR TOKEN DE GITHUB - SOLO 3 PASOS
+═══════════════════════════════════════════════════════════
+
+PASO 1: Abre este enlace en tu navegador:
+        https://github.com/settings/tokens/new
+
+PASO 2: En la página que se abre:
+        - Nombre: pon "HYDRAWARE" (o cualquier nombre)
+        - Expiración: elige "90 days" (o "No expiration")
+        - ✅ MARCAR la casilla "repo" (muy importante)
+        - Click en el botón verde "Generate token"
+
+PASO 3: Copia el token que aparece (empieza con "ghp_...")
+        ⚠️ Solo se muestra UNA VEZ, cópialo ahora
+
+═══════════════════════════════════════════════════════════
+
+Una vez que tengas el token copiado, vuelve aquí y te ayudo
+a configurarlo para hacer el push.
+

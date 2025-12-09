@@ -1,0 +1,37 @@
+═══════════════════════════════════════════════════════════
+  ⚠️ EL TOKEN NO TIENE PERMISOS CORRECTOS
+═══════════════════════════════════════════════════════════
+
+El token que me diste no funciona porque le falta el permiso "repo".
+
+═══════════════════════════════════════════════════════════
+  SOLUCIÓN - Crear Token Nuevo (2 minutos)
+═══════════════════════════════════════════════════════════
+
+1. Ve a: https://github.com/settings/tokens/new
+
+2. Completa el formulario:
+   ✅ Nombre: "HYDRAWARE Push"
+   ✅ Expiración: "90 days" (o "No expiration")
+   ✅ MARCAR la casilla "repo" ← ESTO ES MUY IMPORTANTE
+   ✅ Click en "Generate token"
+
+3. COPIA el nuevo token (empieza con ghp_...)
+
+4. Ejecuta este comando:
+   git push -u origin main
+
+5. Cuando pida credenciales:
+   - Usuario: emmanuelmg-19
+   - Contraseña: PEGA EL NUEVO TOKEN (no tu contraseña)
+
+═══════════════════════════════════════════════════════════
+
+O si prefieres, dime el nuevo token y lo configuro yo.
+
+═══════════════════════════════════════════════════════════
+
+¿Puedes crear un nuevo token con el permiso "repo" marcado?
+
+
+

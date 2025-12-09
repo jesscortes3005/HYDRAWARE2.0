@@ -1,0 +1,23 @@
+═══════════════════════════════════════════════════════════
+  CREAR TOKEN - 3 PASOS SIMPLES
+═══════════════════════════════════════════════════════════
+
+1. En la página que se abrió:
+   - Nombre: pon "HYDRAWARE"
+   - Expiración: elige "90 days" 
+   - ✅ MARCAR la casilla "repo" (muy importante)
+   - Click en "Generate token" (botón verde abajo)
+
+2. COPIA el token que aparece (empieza con ghp_...)
+   ⚠️ Solo se muestra UNA VEZ - cópialo ahora
+
+3. Cuando tengas el token copiado, dime "listo" y ejecuto
+   el push usando ese token
+
+═══════════════════════════════════════════════════════════
+
+¿Ya creaste el token? Si sí, escríbeme "listo" y lo uso
+para hacer el push ahora mismo.
+
+
+
