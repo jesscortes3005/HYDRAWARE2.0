@@ -136,23 +136,25 @@ fun HomeScreen(
                 )
                 Spacer(modifier = Modifier.weight(1f))
             } else {
-                Text(
-                    text = "Tanques registrados",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFF4A4A4A),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 4.dp, bottom = 8.dp)
-                )
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                Column(
+                    modifier = Modifier.weight(1f)
                 ) {
-                    items(tanks) { tank ->
-                        TankCard(tank = tank)
+                    Text(
+                        text = "Tanques registrados",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF4A4A4A),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 4.dp, bottom = 8.dp)
+                    )
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(tanks) { tank ->
+                            TankCard(tank = tank)
+                        }
                     }
                 }
             }
@@ -207,7 +209,9 @@ fun BottomNavigationBar(
                 onClick = onAddClick
             )
             
-            Box {
+            Box(
+                modifier = Modifier
+            ) {
                 NavigationItem(
                     icon = Icons.Default.Notifications,
                     label = "Notificaciones",

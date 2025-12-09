@@ -188,63 +188,68 @@ fun NotificationCard(
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = if (notification.read) 2.dp else 4.dp)
     ) {
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Indicador de tipo
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(
-                        color = getNotificationColor(notification.type),
-                        shape = RoundedCornerShape(24.dp)
-                    ),
-                contentAlignment = Alignment.Center
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = getNotificationIcon(notification.type),
-                    fontSize = 24.sp
-                )
-            }
+                // Indicador de tipo
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(
+                            color = getNotificationColor(notification.type),
+                            shape = RoundedCornerShape(24.dp)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = getNotificationIcon(notification.type),
+                        fontSize = 24.sp
+                    )
+                }
 
-            Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(12.dp))
 
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = notification.title,
-                    fontSize = 16.sp,
-                    fontWeight = if (notification.read) FontWeight.Normal else FontWeight.Bold,
-                    color = Color(0xFF1A1A1A)
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = notification.message,
-                    fontSize = 14.sp,
-                    color = Color(0xFF666666)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = notification.getFormattedDate(),
-                    fontSize = 12.sp,
-                    color = Color(0xFF999999)
-                )
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = notification.title,
+                        fontSize = 16.sp,
+                        fontWeight = if (notification.read) FontWeight.Normal else FontWeight.Bold,
+                        color = Color(0xFF1A1A1A)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = notification.message,
+                        fontSize = 14.sp,
+                        color = Color(0xFF666666)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = notification.getFormattedDate(),
+                        fontSize = 12.sp,
+                        color = Color(0xFF999999)
+                    )
+                }
             }
 
             // Indicador de no leída
             if (!notification.read) {
-                Spacer(modifier = Modifier.width(8.dp))
                 Box(
                     modifier = Modifier
+                        .align(Alignment.TopEnd)
                         .size(8.dp)
                         .background(
                             color = Color(0xFF007AFF),
                             shape = RoundedCornerShape(4.dp)
                         )
-                        .align(Alignment.Top)
                 )
             }
         }
